@@ -1,6 +1,6 @@
 // functions/ArrayTabulatedFunction.java
 package functions;
-import java.io.*;
+import java.io.Serializable;
 
 public class ArrayTabulatedFunction implements TabulatedFunction, Serializable {
 
