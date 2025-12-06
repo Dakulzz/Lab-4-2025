@@ -1,7 +1,7 @@
 package functions;
-import java.io.Serializable;
+import java.io.*;
 
-public class LinkedListTabulatedFunction implements TabulatedFunction, Serializable {
+public class LinkedListTabulatedFunction implements TabulatedFunction, Externalizable {
 
     private static final double EPSILON = 1e-9;
     
@@ -98,7 +98,7 @@ public class LinkedListTabulatedFunction implements TabulatedFunction, Serializa
         return nodeToDelete;
     }
 
-/*
+// Externalizable
     public LinkedListTabulatedFunction() {
         initList();
     }
@@ -122,7 +122,7 @@ public class LinkedListTabulatedFunction implements TabulatedFunction, Serializa
             addNodeToTail(new FunctionPoint(x, y));
         }
     }
-*/
+
     
     // Конструктор с количеством точек
     public LinkedListTabulatedFunction(double leftX, double rightX, int count) {
