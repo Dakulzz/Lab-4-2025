@@ -13,7 +13,8 @@ public class Main {
         testSumOfSquares();
         testWriteReadExp();
         testOutputInputLog();
-        testSerialization();
+        testSerializable();
+        testExternalizable();
     }
     
     // Тест 1: Sin и Cos на [0, π] с шагом 0.1
@@ -175,48 +176,72 @@ public class Main {
         println();
     }
     
-    // Тест 6: Сериализация ln(e^x) = x
-
-    private static void testSerialization() {
-        println("--- Тест 6: Сериализация");
+    // Тест 6: Serializable (ArrayTabulatedFunction)
+    private static void testSerializable() {
+        System.out.println("--- Тест 6: Serializable (Array) для ln(e^x) = x");
         
-        String filename = "composition_serialized.ser";
+        String filename = "array_serializable.ser";
         
         try {
-            // Создаем ln(e^x) - должно давать x
-            Function exp = new Exp();
-            Function ln = new Log(Math.E);
-            Function composition = Functions.composition(ln, exp); // ln(e^x)
+            Function composition = Functions.composition(new Log(Math.E), new Exp());
+            TabulatedFunction original = TabulatedFunctions.tabulate(composition, 0, 10, 11);
             
-            TabulatedFunction tabFunc = TabulatedFunctions.tabulate(composition, 0, 10, 11);
-            
-            // Сериализуем
             try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filename))) {
-                oos.writeObject(tabFunc);
+                oos.writeObject(original);
             }
-            println("Функция сериализована в файл: " + filename);
             
-            // Десериализуем
-            TabulatedFunction readFunc;
+            TabulatedFunction restored;
             try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename))) {
-                readFunc = (TabulatedFunction) ois.readObject();
+                restored = (TabulatedFunction) ois.readObject();
             }
-            println("Функция десериализована из файла");
             
-            // Сравниваем
-            println("\nСравнение (должно быть ≈ x):");
-            println("x\tИсходная\tСчитанная\tОжидаемое (x)");
-            
+            System.out.println("x\tИсходная\tСчитанная");
             for (int x = 0; x <= 10; x++) {
-                double orig = tabFunc.getFunctionValue(x);
-                double read = readFunc.getFunctionValue(x);
-                System.out.printf("%d\t%.6f\t%.6f\t%d%n", x, orig, read, x);
+                System.out.printf("%d\t%.6f\t%.6f%n", x, original.getFunctionValue(x), restored.getFunctionValue(x), x);
             }
+            
+            System.out.println("Размер файла: " + new File(filename).length() + " байт\n");
             
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("Ошибка: " + e.getMessage());
         }
-        println();
+    }
+
+    // Тест 7: Externalizable (LinkedListTabulatedFunction)
+    private static void testExternalizable() {
+        System.out.println("--- Тест 7: Externalizable (LinkedList) для ln(e^x) = x");
+        
+        String filename = "linked_externalizable.ser";
+        
+        try {
+            Function composition = Functions.composition(new Log(Math.E), new Exp());
+            
+            // Externalizable LinkedList с теми же значениями
+            double[] values = new double[11];
+            for (int i = 0; i <= 10; i++) {
+                values[i] = composition.getFunctionValue(i);
+            }
+            LinkedListTabulatedFunction original = new LinkedListTabulatedFunction(0, 10, values);
+            
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filename))) {
+                oos.writeObject(original);
+            }
+            
+            LinkedListTabulatedFunction restored;
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename))) {
+                restored = (LinkedListTabulatedFunction) ois.readObject();
+            }
+            
+            System.out.println("x\tИсходная\tСчитанная");
+            for (int x = 0; x <= 10; x++) {
+                System.out.printf("%d\t%.6f\t%.6f%n", x, original.getFunctionValue(x), restored.getFunctionValue(x), x);
+            }
+            
+            println("Размер файла: " + new File(filename).length() + " байт\n");
+            
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Ошибка: " + e.getMessage());
+        }
     }
 
     public static void println(Object obj) {
